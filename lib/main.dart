@@ -58,7 +58,6 @@ class SplashScreenState extends State<SplashScreen>
       );
     });
     _controller = AnimationController(
-      //animate the text
       duration: const Duration(seconds: 2),
       vsync: this,
     );
@@ -128,12 +127,14 @@ class HomePageState extends State<HomePage> {
     'Card 0',
     'Card 1',
     'Card 2',
-    // Add more card names as needed
   ];
 
   List<bool> isFavorite = [];
+  String searchQuery = '';
+  TextEditingController searchcontroller = TextEditingController();
 
   List<String> getFavoriteCards() {
+    //list to store the card names which are marked as favorite
     List<String> favoriteCards = [];
 
     for (int i = 0; i < cardNames.length; i++) {
@@ -143,6 +144,14 @@ class HomePageState extends State<HomePage> {
     }
 
     return favoriteCards;
+  }
+
+  List<String> getFilteredCards() {
+    //filter the searched cards
+    return cardNames
+        .where((cardName) =>
+            cardName.toLowerCase().contains(searchQuery.toLowerCase()))
+        .toList();
   }
 
   @override
@@ -159,9 +168,8 @@ class HomePageState extends State<HomePage> {
     return Scaffold(
       backgroundColor: const Color(0xFFD7F6FD),
       appBar: AppBar(
-        backgroundColor:
-            const Color(0xFF3199FA), // Set background color to #3199FA
-        title: const Text('Home'), // Set title text to "Home"
+        backgroundColor: const Color(0xFF3199FA),
+        title: const Text('Home'),
         actions: <Widget>[
           IconButton(
             icon: const Icon(
@@ -171,6 +179,7 @@ class HomePageState extends State<HomePage> {
             onPressed: () {
               Navigator.of(context).push(
                 MaterialPageRoute(
+                  //navigation to the page here only card names chosen as favorite will be there
                   builder: (_) =>
                       FavoriteCardsPage(favoriteCards: getFavoriteCards()),
                 ),
@@ -184,141 +193,179 @@ class HomePageState extends State<HomePage> {
         child: Column(
           children: <Widget>[
             TextField(
+              controller: searchcontroller,
+              onChanged: (value) {
+                setState(() {
+                  searchQuery = value;
+                });
+              },
               decoration: InputDecoration(
                 filled: true,
-                fillColor: Color(0xFF61B5F2), // Set background color to #61B5F2
+                fillColor: const Color(0xFF61B5F2),
                 hintText: 'Search',
-                contentPadding: EdgeInsets.all(12.0),
+                contentPadding: const EdgeInsets.all(12.0),
                 border: OutlineInputBorder(
-                  borderRadius:
-                      BorderRadius.circular(20.0), // Set corner radius to 20
+                  borderRadius: BorderRadius.circular(20.0),
                   borderSide: BorderSide.none,
                 ),
-                suffixIcon: Icon(
-                  Icons.search, // Use the search icon as the suffix icon
-                  color: Colors.black, // Icon color
+                prefixIcon: IconButton(
+                  icon: const Icon(
+                    Icons.clear, // Clear icon
+                    color: Colors.black,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      searchcontroller.text = ''; //clear the text
+                      searchQuery = '';
+                    });
+                  },
+                ),
+                suffixIcon: IconButton(
+                  icon: const Icon(
+                    Icons.search,
+                    color: Colors.white,
+                  ),
+                  onPressed: () {
+                    // Hide the keyboard when the search icon is tapped
+                    FocusScope.of(context).unfocus();
+                  },
                 ),
               ),
             ),
             const SizedBox(height: 20.0),
-            Container(
-              height: 200,
-              decoration: BoxDecoration(
-                color: Color(0xFF63D0FF), // Set background color to #63D0FF
-                borderRadius:
-                    BorderRadius.circular(10), // Set corner radius to 10
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(10.0),
-                child: Row(
+            Visibility(
+              visible: searchQuery.isEmpty, // Hide when there's a search query
+              child: Container(
+                height: 200,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF63D0FF),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(10.0),
+                  child: Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       SvgPicture.asset(
-                        'assets/home.svg', // Replace with your SVG image path
+                        'assets/home.svg',
                         width: 200,
                         height: 180,
                       ),
                       Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            AnimatedTextKit(
-                              animatedTexts: [
-                                TypewriterAnimatedText(
-                                  'LEARN',
-                                  textStyle: const TextStyle(
-                                    fontSize: 18.0,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                  speed: const Duration(milliseconds: 200),
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          AnimatedTextKit(
+                            animatedTexts: [
+                              TypewriterAnimatedText(
+                                'LEARN',
+                                textStyle: const TextStyle(
+                                  fontSize: 18.0,
+                                  fontWeight: FontWeight.bold,
                                 ),
-                              ],
-                              totalRepeatCount: 1,
-                            ),
-                            Row(
-                              children: [
-                                SizedBox(
-                                  width: 50,
-                                ),
-                                AnimatedTextKit(
-                                  animatedTexts: [
-                                    TypewriterAnimatedText(
-                                      'FLUTTER',
-                                      textStyle: const TextStyle(
-                                        fontSize: 18.0,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                      speed: const Duration(milliseconds: 200),
+                                speed: const Duration(milliseconds: 200),
+                              ),
+                            ],
+                            totalRepeatCount: 1,
+                          ),
+                          Row(
+                            children: [
+                              const SizedBox(
+                                width: 50,
+                              ),
+                              AnimatedTextKit(
+                                animatedTexts: [
+                                  TypewriterAnimatedText(
+                                    'FLUTTER',
+                                    textStyle: const TextStyle(
+                                      fontSize: 18.0,
+                                      fontWeight: FontWeight.bold,
                                     ),
-                                  ],
-                                  totalRepeatCount: 1,
-                                ),
-                              ],
-                            ),
-                          ]),
-                    ]),
+                                    speed: const Duration(milliseconds: 200),
+                                  ),
+                                ],
+                                totalRepeatCount: 1,
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
-            SizedBox(
+            const SizedBox(
               height: 20,
             ),
             Expanded(
-              child: ListView.builder(
-                shrinkWrap: true,
-                itemCount: cardNames
-                    .length, // Change this to the number of cards you want
-                itemBuilder: (context, index) {
-                  final cardText = cardNames[index];
-                  return GestureDetector(
-                    onTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => DetailPage(appBarText: cardText),
-                        ),
-                      );
-                    },
-                    child: Card(
-                      color: const Color(0xFF63D0FF), // Card background color
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(15.0),
-                      ),
-                      elevation: 5,
-                      margin: const EdgeInsets.all(10),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                '$cardText',
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                            IconButton(
-                              icon: Icon(
-                                isFavorite[index]
-                                    ? Icons.favorite
-                                    : Icons.favorite_border, // Heart icon
-                              ),
-                              onPressed: () {
-                                setState(() {
-                                  if (isFavorite[index]) {
-                                    isFavorite[index] = !isFavorite[index];
-                                  } else {
-                                    isFavorite[index] = !isFavorite[index];
-                                  }
-                                });
-                              },
-                            ),
-                          ],
+              child: getFilteredCards().isEmpty
+                  ? const Center(
+                      child: Text(
+                        'No match found',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
+                    )
+                  : ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: searchQuery.isEmpty
+                          ? cardNames.length
+                          : getFilteredCards().length,
+                      itemBuilder: (context, index) {
+                        final cardText = searchQuery.isEmpty
+                            ? cardNames[index]
+                            : getFilteredCards()[index];
+                        return GestureDetector(
+                          onTap: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute( //navigate to the page that contains the details
+                                builder: (_) =>
+                                    DetailPage(appBarText: cardText),
+                              ),
+                            );
+                          },
+                          child: Card(
+                            color: const Color(0xFF63D0FF),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(15.0),
+                            ),
+                            elevation: 5,
+                            margin: const EdgeInsets.all(10),
+                            child: Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 10.0),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      cardText,
+                                      style: const TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                  IconButton(
+                                    icon: Icon(
+                                      isFavorite[index]
+                                          ? Icons.favorite
+                                          : Icons.favorite_border,
+                                    ),
+                                    onPressed: () {
+                                      setState(() {
+                                        isFavorite[index] = !isFavorite[index];
+                                      });
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        );
+                      },
                     ),
-                  );
-                },
-              ),
             ),
           ],
         ),
@@ -335,7 +382,7 @@ class HomePageState extends State<HomePage> {
 class DetailPage extends StatelessWidget {
   final String appBarText;
 
-  DetailPage({required this.appBarText});
+  const DetailPage({super.key, required this.appBarText});
 
   @override
   Widget build(BuildContext context) {
@@ -349,15 +396,15 @@ class DetailPage extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
+            const Icon(
               Icons.favorite, // Example icon
               size: 100,
               color: Colors.red,
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             Text(
               'This is the detail page for $appBarText',
-              style: TextStyle(fontSize: 20),
+              style: const TextStyle(fontSize: 20),
             ),
           ],
         ),
@@ -369,7 +416,7 @@ class DetailPage extends StatelessWidget {
 class FavoriteCardsPage extends StatelessWidget {
   final List<String> favoriteCards;
 
-  FavoriteCardsPage({required this.favoriteCards});
+  const FavoriteCardsPage({super.key, required this.favoriteCards});
 
   @override
   Widget build(BuildContext context) {
@@ -404,8 +451,8 @@ class FavoriteCardsPage extends StatelessWidget {
                   children: [
                     Expanded(
                       child: Text(
-                        '$cardText',
-                        style: TextStyle(
+                        cardText,
+                        style: const TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
                         ),
