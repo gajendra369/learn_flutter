@@ -1,0 +1,30 @@
+{
+  "AppBar": {
+  "code": {
+  "type": "scaffold",
+  "args": {
+    "appBar": {
+      "type": "app_bar",
+      "args": {
+        "title": {
+          "type": "text",
+          "args": {
+            "text": "Dynamic Widgets"
+          }
+        }
+      }
+    },
+    "body": {
+      "type": "center",
+      "child": {
+        "type": "network_image",
+        "args": {
+          "fit": "cover",
+          "src": "https://img.youtube.com/vi/Xar12ksH3Bk/0.jpg"
+        }
+      }
+    }
+  }
+}
+}
+}

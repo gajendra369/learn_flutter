@@ -1,8 +1,15 @@
-import 'dart:async';
+import 'package:learn_flutter/listview.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:animated_text_kit/animated_text_kit.dart';
+import 'package:learn_flutter/appbar.dart';
+import 'package:learn_flutter/drawer.dart';
+import 'package:learn_flutter/radio.dart';
+import 'package:learn_flutter/splashscreen.dart';
+import 'package:learn_flutter/detailpage.dart';
+import 'package:learn_flutter/favoritepage.dart';
+import 'package:learn_flutter/scrollview.dart';
 
 void main() {
   runApp(const MyApp());
@@ -22,94 +29,6 @@ class MyApp extends StatelessWidget {
         duration: 3, //duration of splash screen
         navigateAfterDuration:
             HomePage(), //screen to display after splash screen
-      ),
-    );
-  }
-}
-
-class SplashScreen extends StatefulWidget {
-  final int duration;
-  final Widget navigateAfterDuration;
-
-  const SplashScreen({
-    Key? key,
-    required this.duration,
-    required this.navigateAfterDuration,
-  }) : super(key: key);
-
-  @override
-  SplashScreenState createState() => SplashScreenState();
-}
-
-class SplashScreenState extends State<SplashScreen>
-    with TickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<Offset> _slideAnimation;
-  late Animation<double> _fadeAnimation;
-  @override
-  void initState() {
-    super.initState();
-    Timer(Duration(seconds: widget.duration), () {
-      //set timer for splash screen
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (_) => widget.navigateAfterDuration,
-        ),
-      );
-    });
-    _controller = AnimationController(
-      duration: const Duration(seconds: 2),
-      vsync: this,
-    );
-
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(-2.0, 0.0), // Slide from left to right
-      end: const Offset(0.0, 0.0),
-    ).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: Curves.easeInOut,
-      ),
-    );
-
-    _fadeAnimation = Tween<double>(
-      begin: 0.0, // Fully transparent
-      end: 1.0, // Fully opaque
-    ).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: Curves.easeInOut,
-      ),
-    );
-
-    // Start the animation
-    _controller.forward();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF5793ED),
-      body: SafeArea(
-        child: Center(
-          child: SlideTransition(
-            position: _slideAnimation,
-            child: FadeTransition(
-              opacity: _fadeAnimation,
-              child: SvgPicture.asset(
-                'assets/entryPage.svg',
-                width: 250,
-                height: 300,
-              ),
-            ),
-          ),
-        ),
       ),
     );
   }
@@ -259,6 +178,124 @@ class HomePageState extends State<HomePage> {
       imagePath: 'assets/radio.png',
       widget: const MyRadio(),
     ),
+    "Single Child Scrollview": CardData(
+      code: '''
+                            import 'package:flutter/material.dart';
+          
+          class MyScrollView extends StatelessWidget {
+            const MyScrollView({super.key,});
+          
+            @override
+            Widget build(BuildContext context) {
+              return  Container(
+                height: 200,
+                width: 700,
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: Colors.black, // Border color
+                    width: 2.0, // Border width
+                  ),
+                  borderRadius: const BorderRadius.all(Radius.circular(10)), // Optional: Rounded corners
+                ),
+                child: const SingleChildScrollView(
+                  child: Padding(
+                    padding: EdgeInsets.all(8),
+                    child: Column(
+                      children: [
+                        Text("text-1"),
+                        SizedBox(height: 20),
+                        Text("text-2"),
+                        SizedBox(height: 20),
+                        Text("text-3"),
+                        SizedBox(height: 20),
+                        Text("text-4"),
+                        SizedBox(height: 20),
+                        Text("text-5"),
+                        SizedBox(height: 20),
+                        Text("text-6"),
+                        SizedBox(height: 20),
+                        Text("text-7"),
+                        SizedBox(height: 20),
+                        Text("text-8"),
+                        SizedBox(height: 20),
+                        Text("text-9"),
+                        SizedBox(height: 20),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            }
+          }
+
+      ''',
+      imagePath: 'assets/scrollview.png',
+      widget: const MyScrollView(),
+    ),
+    "ListView": CardData(
+      code: '''
+              import 'package:flutter/material.dart';
+        
+        void main() {
+          runApp(const CardListScreen());
+        }
+        
+        
+        class CardListScreen extends StatelessWidget {
+          const CardListScreen({super.key});
+        
+          @override
+          Widget build(BuildContext context) {
+            return Scaffold(
+              body: ListView(
+                padding: const EdgeInsets.all(16.0),
+                children: const <Widget>[
+                  CardItem(
+                    title: 'Card 1',
+                    description: 'This is the first card.',
+                  ),
+                  CardItem(
+                    title: 'Card 2',
+                    description: 'This is the second card.',
+                  ),
+                  CardItem(
+                    title: 'Card 3',
+                    description: 'This is the third card.',
+                  ),
+                  // Add more CardItems as needed
+                ],
+              ),
+            );
+          }
+        }
+        
+        class CardItem extends StatelessWidget {
+          final String title;
+          final String description;
+        
+          const CardItem({super.key, 
+            required this.title,
+            required this.description,
+          });
+        
+          @override
+          Widget build(BuildContext context) {
+            return Card(
+              elevation: 3.0, // Card elevation
+              margin: const EdgeInsets.symmetric(vertical: 8.0),
+              child: ListTile(
+                title: Text(title, style: TextStyle(fontSize: 18.0)),
+                subtitle: Text(description),
+                // You can add more content here, like images, buttons, etc.
+              ),
+            );
+          }
+        }
+
+      ''',
+      imagePath: 'assets/listview.png',
+      widget: const CardListScreen(),
+    )
   };
 
   List<bool> isFavorite = [];
@@ -315,12 +352,13 @@ class HomePageState extends State<HomePage> {
     return Scaffold(
       body: Padding(
         padding: const EdgeInsets.all(5),
-        child: Text(cardMap[key]!.code.toString()),
+        child:
+            SingleChildScrollView(child: Text(cardMap[key]!.code.toString())),
       ),
     );
   }
 
-  String getImage(String key){
+  String getImage(String key) {
     return cardMap[key]!.imagePath;
   }
 
@@ -570,273 +608,5 @@ class HomePageState extends State<HomePage> {
   void dispose() {
     searchcontroller.dispose();
     super.dispose();
-  }
-}
-
-class DetailPage extends StatefulWidget {
-  final String appBarText;
-  final Widget Function(String) callback;
-  final Widget Function(String) codeCallback;
-
-  const DetailPage(
-      {super.key,
-      required this.appBarText,
-      required this.callback,
-      required this.codeCallback});
-
-  @override
-  State<DetailPage> createState() => _DetailPageState();
-}
-
-class _DetailPageState extends State<DetailPage> {
-  bool isCode = false;
-
-  final int _selectedIndex = 0;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFD7F6FD),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF3199FA),
-        title: Text(
-            widget.appBarText), // Set the app bar title based on the card text
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: isCode
-            ? widget.codeCallback(widget.appBarText)
-            : widget.callback(widget.appBarText),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        selectedLabelStyle: const TextStyle(color: Colors.blue),
-        unselectedLabelStyle:const TextStyle(color: Colors.grey),
-        items:  [
-          BottomNavigationBarItem(
-              label: 'Results', icon: Icon(Icons.phone_android_rounded,color: isCode?Colors.grey:Colors.blue,)),
-          BottomNavigationBarItem(label: 'Code', icon: Icon(Icons.code,color: !isCode?Colors.grey:Colors.blue,))
-        ],
-        currentIndex: _selectedIndex,
-        onTap: (index) {
-          setState(() {
-            isCode = (index != 0);
-          });
-        },
-      ),
-    );
-  }
-}
-
-class FavoriteCardsPage extends StatelessWidget {
-  final List<String> favoriteCards;
-  final Widget Function(String) callback;
-  final Widget Function(String) codeCallback;
-  final String Function(String) imgCallback;
-
-  const FavoriteCardsPage(
-      {super.key,
-      required this.favoriteCards,
-      required this.callback,
-      required this.codeCallback,
-      required this.imgCallback});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFD7F6FD),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF3199FA),
-        title: const Text('Favorite Cards'),
-      ),
-      body: ListView.builder(
-        itemCount: favoriteCards.length,
-        itemBuilder: (context, index) {
-          final String cardText = favoriteCards[index];
-          return GestureDetector(
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => DetailPage(
-                    appBarText: cardText,
-                    callback: callback,
-                    codeCallback: codeCallback,
-                  ),
-                ),
-              );
-            },
-            child: Card(
-              color: const Color(0xFF63D0FF), // Card background color
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(15.0),
-              ),
-              elevation: 5,
-              margin: const EdgeInsets.all(10),
-              child: Padding(
-                padding: const EdgeInsets.all(10.0),
-                child: Column(
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            cardText,
-                            style: const TextStyle(
-                              fontSize: 20,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 10),
-                    Image.asset(
-                      imgCallback(cardText)
-                    )
-                  ],
-                ),
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-}
-
-class MyAppBar extends StatelessWidget {
-  const MyAppBar({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("AppBar"), // Set the title of the AppBar
-      ),
-      body: const Center(child: Text("An example of appbar")),
-    );
-  }
-}
-
-class MyDrawer extends StatelessWidget {
-  const MyDrawer({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Home Page'),
-      ),
-      body: const Center(
-        child: Text('get drawer tapping on top left icon'),
-      ),
-      drawer: const MyDrawerView(),
-    );
-  }
-}
-
-class MyDrawerView extends StatelessWidget {
-  const MyDrawerView({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Drawer(
-          child: ListView(
-            padding: EdgeInsets.zero,
-            children: <Widget>[
-              const UserAccountsDrawerHeader(
-                accountName: Text('John Doe'), // Display user's name
-                accountEmail:
-                    Text('johndoe@example.com'), // Display user's email
-                currentAccountPicture: CircleAvatar(
-                  // Display user's profile picture
-                  backgroundImage: NetworkImage(
-                    'https://example.com/profile.jpg',
-                  ),
-                ),
-              ),
-              const Divider(), // Add a divider below the header
-              ListTile(
-                leading: const Icon(Icons.home),
-                title: const Text('Home'),
-                onTap: () {
-                  Navigator.pop(context);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.settings),
-                title: const Text('Settings'),
-                onTap: () {
-                  Navigator.pop(context);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.info),
-                title: const Text('About'),
-                onTap: () {
-                  Navigator.pop(context);
-                },
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class MyRadio extends StatefulWidget {
-  const MyRadio({Key? key}) : super(key: key);
-
-  @override
-  MyRadioState createState() => MyRadioState();
-}
-
-class MyRadioState extends State<MyRadio> {
-  String? selectedOption = 'Option 1';
-
-  void handleRadioValueChanged(String? value) {
-    setState(() {
-      selectedOption = value;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            const Text(
-              'Select an option:',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            RadioListTile(
-              title: const Text('Option 1'),
-              value: 'Option 1',
-              groupValue: selectedOption,
-              onChanged: handleRadioValueChanged,
-            ),
-            RadioListTile(
-              title: const Text('Option 2'),
-              value: 'Option 2',
-              groupValue: selectedOption,
-              onChanged: handleRadioValueChanged,
-            ),
-            RadioListTile(
-              title: const Text('Option 3'),
-              value: 'Option 3',
-              groupValue: selectedOption,
-              onChanged: handleRadioValueChanged,
-            ),
-            const SizedBox(height: 20),
-            Text('Selected Option: $selectedOption'),
-          ],
-        ),
-      ),
-    );
   }
 }
