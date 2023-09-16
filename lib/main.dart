@@ -519,7 +519,7 @@ class HomePageState extends State<HomePage> {
                                     width: 50,
                                   ),
                                   Text(
-                                    'LEARN',
+                                    'FLUTTER',
                                     style: TextStyle(
                                       fontSize: 18.0,
                                       fontWeight: FontWeight.bold,
