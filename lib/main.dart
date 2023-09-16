@@ -1,15 +1,17 @@
+// ignore_for_file: deprecated_member_use
+import 'package:flutter/foundation.dart';
 import 'package:learn_flutter/listview.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:learn_flutter/appbar.dart';
 import 'package:learn_flutter/drawer.dart';
 import 'package:learn_flutter/radio.dart';
 import 'package:learn_flutter/splashscreen.dart';
 import 'package:learn_flutter/detailpage.dart';
-import 'package:learn_flutter/favoritepage.dart';
 import 'package:learn_flutter/scrollview.dart';
+import 'package:learn_flutter/favoritepage.dart';
 
 void main() {
   runApp(const MyApp());
@@ -20,12 +22,8 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Quiz App',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: const SplashScreen(
+    return const MaterialApp(
+      home: SplashScreen(
         duration: 3, //duration of splash screen
         navigateAfterDuration:
             HomePage(), //screen to display after splash screen
@@ -180,51 +178,32 @@ class HomePageState extends State<HomePage> {
     ),
     "Single Child Scrollview": CardData(
       code: '''
-                            import 'package:flutter/material.dart';
+          import 'package:flutter/material.dart';
           
           class MyScrollView extends StatelessWidget {
             const MyScrollView({super.key,});
           
             @override
             Widget build(BuildContext context) {
-              return  Container(
-                height: 200,
-                width: 700,
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    color: Colors.black, // Border color
-                    width: 2.0, // Border width
+              return  Scaffold(
+              body: SingleChildScrollView(
+              child: Padding(
+              padding: const EdgeInsets.all(8),
+              child: Column(
+                children: [
+                  for (int i = 0; i < 15; i++) // Replace 10 with the number of items you want
+                      Padding(
+                      padding: const EdgeInsets.all(20.0),
+                      child: Text(
+                          'Item dollar-i',
+                        style: const TextStyle(fontSize: 18),
+                      ),
                   ),
-                  borderRadius: const BorderRadius.all(Radius.circular(10)), // Optional: Rounded corners
-                ),
-                child: const SingleChildScrollView(
-                  child: Padding(
-                    padding: EdgeInsets.all(8),
-                    child: Column(
-                      children: [
-                        Text("text-1"),
-                        SizedBox(height: 20),
-                        Text("text-2"),
-                        SizedBox(height: 20),
-                        Text("text-3"),
-                        SizedBox(height: 20),
-                        Text("text-4"),
-                        SizedBox(height: 20),
-                        Text("text-5"),
-                        SizedBox(height: 20),
-                        Text("text-6"),
-                        SizedBox(height: 20),
-                        Text("text-7"),
-                        SizedBox(height: 20),
-                        Text("text-8"),
-                        SizedBox(height: 20),
-                        Text("text-9"),
-                        SizedBox(height: 20),
-                      ],
-                    ),
-                  ),
-                ),
-              );
+            ],
+          ),
+        ),
+      ),
+    );
             }
           }
 
@@ -298,24 +277,15 @@ class HomePageState extends State<HomePage> {
     )
   };
 
-  List<bool> isFavorite = [];
+  List<String> favorites= [];
   String searchQuery = '';
   TextEditingController searchcontroller = TextEditingController();
+  ScrollController scroll=ScrollController();
   static const String favoriteCardsKey = 'favoriteCards';
   late SharedPreferences _prefs;
+  bool isSearch=false,scrolled=false;
+  final String contactEmail = 'myextest36@gmail.com';
 
-  List<String> getFavoriteCards() {
-    //list to store the card names which are marked as favorite
-    List<String> favoriteCards = [];
-
-    for (int i = 0; i < cardMap.length; i++) {
-      if (isFavorite[i]) {
-        favoriteCards.add(cardMap.keys.toList()[i]);
-      }
-    }
-
-    return favoriteCards;
-  }
 
   List<String> getFilteredCards() {
     //filter the searched cards
@@ -329,19 +299,17 @@ class HomePageState extends State<HomePage> {
   void loadFavoriteCards() {
     final List<String>? savedFavoriteCards =
         _prefs.getStringList(favoriteCardsKey);
-
-    if (savedFavoriteCards != null) {
-      setState(() {
-        for (int i = 0; i < cardMap.length; i++) {
-          isFavorite[i] = savedFavoriteCards.contains(cardMap.keys.toList()[i]);
-        }
-      });
+    if(savedFavoriteCards!=null) {
+      favorites=savedFavoriteCards;
     }
+
   }
 
   void saveFavoriteCards() {
-    final List<String> favoriteCards = getFavoriteCards();
-    _prefs.setStringList(favoriteCardsKey, favoriteCards);
+    _prefs.setStringList(favoriteCardsKey, favorites);
+    setState(() {
+      loadFavoriteCards();
+    });
   }
 
   Widget getWidget(String key) {
@@ -365,11 +333,6 @@ class HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    isFavorite = List.generate(
-      cardMap.length,
-      (index) => false,
-    );
-
     // Initialize SharedPreferences
     SharedPreferences.getInstance().then((prefs) {
       _prefs = prefs;
@@ -379,226 +342,290 @@ class HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFD7F6FD),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF3199FA),
-        title: const Text('Home'),
-        actions: <Widget>[
-          IconButton(
-            icon: const Icon(
-              Icons.favorite,
-              color: Colors.white,
-            ),
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  //navigation to the page here only card names chosen as favorite will be there
-                  builder: (_) => FavoriteCardsPage(
-                    favoriteCards: getFavoriteCards(),
-                    callback: getWidget,
-                    codeCallback: getCode,
-                    imgCallback: getImage,
-                  ),
-                ),
-              );
+    return SafeArea(
+      child: Scaffold(
+        backgroundColor: const Color(0xFFD7F6FD),
+        appBar: AppBar(
+          backgroundColor: const Color(0xFF3199FA),
+          title: isSearch? TextField(
+            controller: searchcontroller,
+            onChanged: (value) {
+              setState(() {
+                searchQuery = value;
+              });
             },
-          ),
-        ],
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Column(
-          children: <Widget>[
-            TextField(
-              controller: searchcontroller,
-              onChanged: (value) {
-                setState(() {
-                  searchQuery = value;
-                });
-              },
-              decoration: InputDecoration(
-                filled: true,
-                fillColor: const Color(0xFF61B5F2),
-                hintText: 'Search',
-                contentPadding: const EdgeInsets.all(12.0),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(20.0),
-                  borderSide: BorderSide.none,
+            decoration: InputDecoration(
+              filled: true,
+              hintText: 'Search',
+              contentPadding: const EdgeInsets.all(12.0),
+              prefixIcon: IconButton(
+                icon: const Icon(
+                  Icons.clear, // Clear icon
+                  color: Colors.white,
                 ),
-                prefixIcon: IconButton(
-                  icon: const Icon(
-                    Icons.clear, // Clear icon
-                    color: Colors.black,
-                  ),
-                  onPressed: () {
-                    setState(() {
-                      searchcontroller.text = ''; //clear the text
-                      searchQuery = '';
-                      FocusScope.of(context).unfocus();
-                    });
-                  },
-                ),
-                suffixIcon: IconButton(
-                  icon: const Icon(
-                    Icons.search,
-                    color: Colors.white,
-                  ),
-                  onPressed: () {
-                    // Hide the keyboard when the search icon is tapped
+                onPressed: () {
+                  setState(() {
+                    searchcontroller.text = ''; //clear the text
+                    searchQuery = '';
                     FocusScope.of(context).unfocus();
-                  },
+                    setState(() {
+                      isSearch=!isSearch;
+                    });
+                  });
+                },
+              ),
+              suffixIcon: IconButton(
+                icon: const Icon(
+                  Icons.search,
+                  color: Colors.white,
                 ),
+                onPressed: () {
+                  // Hide the keyboard when the search icon is tapped
+                  FocusScope.of(context).unfocus();
+                },
               ),
             ),
-            const SizedBox(height: 20.0),
+          )
+          :const Text("HOME"),
+          actions: <Widget>[
             Visibility(
-              visible: searchQuery.isEmpty, // Hide when there's a search query
-              child: Container(
-                height: 200,
-                decoration: BoxDecoration(
-                  color: const Color(0xFF63D0FF),
-                  borderRadius: BorderRadius.circular(10),
+              visible: !isSearch,
+              child: IconButton(
+                icon: const Icon(
+                  Icons.search,
+                  color: Colors.white,
                 ),
-                child: Padding(
-                  padding: const EdgeInsets.all(10.0),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      SvgPicture.asset(
-                        'assets/home.svg',
-                        width: 200,
-                        height: 180,
-                      ),
-                      Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                onPressed: (){
+                  setState(() {
+                    isSearch=!isSearch;
+                  });
+                }
+              ),
+            ),
+            IconButton(
+              icon: const Icon(
+                Icons.favorite,
+                color: Colors.white,
+              ),
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    //navigation to the page here only card names chosen as favorite will be there
+                    builder: (_) => FavoriteCardsPage(
+                      favorites: favorites,
+                      callback: getWidget,
+                      codeCallback: getCode,
+                      imgCallback: getImage,
+                      saveFavoriteCards: saveFavoriteCards,
+                    ),
+                  ),
+                );
+              },
+            ),
+          ],
+
+        ),
+        drawer: Drawer(
+          child: ListView(
+            padding: EdgeInsets.zero,
+            children: <Widget>[
+              const UserAccountsDrawerHeader(
+                accountName: Text("GAJENDRA"),
+                accountEmail: Text("gajendra@gmail.com"),
+              ),
+              // ListTile for the "Contact" item
+              ListTile(
+                leading: const Icon(Icons.contact_mail), // You can change the icon
+                title: const Text('Contact'),
+                onTap: () {
+
+                  String? encodeQueryParameters(Map<String, String> params) {
+                    return params.entries
+                        .map((MapEntry<String, String> e) =>
+                    '${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value)}')
+                        .join('&');
+                  }
+// ···
+                  final Uri emailLaunchUri = Uri(
+                    scheme: 'mailto',
+                    path: contactEmail,
+                    query: encodeQueryParameters(<String, String>{
+                      'subject': 'Feedback',
+                    }),
+                  );
+                  try {
+                    launchUrl(emailLaunchUri);
+                  }catch(e){
+                    if (kDebugMode) {
+                      print(e.toString());
+                    }
+                  }
+
+                },
+              ),
+            ],
+          ),
+        ),
+        body:NotificationListener<ScrollUpdateNotification>(
+          onNotification: (notification) {
+            // Calculate the scroll offset to determine whether to hide the container
+            final scrollOffset = notification.metrics.pixels;
+            final shouldHideContainer = scrollOffset > 0; // You can adjust this condition as needed
+
+            // Update the visibility of the container
+            if (scrolled != shouldHideContainer) {
+              setState(() {
+                scrolled = shouldHideContainer;
+              });
+            }
+
+            return false;
+          },
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Column(
+              children: <Widget>[
+                Visibility(
+                  visible: searchQuery.isEmpty&&!scrolled, // Hide when there's a search query
+                  child: Container(
+                    height: 200,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF63D0FF),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(10.0),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          AnimatedTextKit(
-                            animatedTexts: [
-                              TypewriterAnimatedText(
-                                'LEARN',
-                                textStyle: const TextStyle(
-                                  fontSize: 18.0,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                                speed: const Duration(milliseconds: 200),
-                              ),
-                            ],
-                            totalRepeatCount: 1,
+                          SvgPicture.asset(
+                            'assets/home.svg',
+                            width: 200,
+                            height: 180,
                           ),
-                          Row(
+                          const Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              const SizedBox(
-                                width: 50,
+                              Text(
+                              'LEARN',
+                              style: TextStyle(
+                                fontSize: 18.0,
+                                fontWeight: FontWeight.bold,
                               ),
-                              AnimatedTextKit(
-                                animatedTexts: [
-                                  TypewriterAnimatedText(
-                                    'FLUTTER',
-                                    textStyle: const TextStyle(
+                              ),
+                              Row(
+                                children: [
+                                  SizedBox(
+                                    width: 50,
+                                  ),
+                                  Text(
+                                    'LEARN',
+                                    style: TextStyle(
                                       fontSize: 18.0,
                                       fontWeight: FontWeight.bold,
                                     ),
-                                    speed: const Duration(milliseconds: 200),
                                   ),
                                 ],
-                                totalRepeatCount: 1,
                               ),
                             ],
                           ),
                         ],
                       ),
-                    ],
+                    ),
                   ),
                 ),
-              ),
-            ),
-            const SizedBox(
-              height: 20,
-            ),
-            Expanded(
-              child: getFilteredCards().isEmpty
-                  ? const Center(
-                      child: Text(
-                        'No match found',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    )
-                  : ListView.builder(
-                      shrinkWrap: true,
-                      itemCount: searchQuery.isEmpty
-                          ? cardMap.keys.length
-                          : getFilteredCards().length,
-                      itemBuilder: (context, index) {
-                        final cardText = searchQuery.isEmpty
-                            ? cardMap.keys.toList()[index]
-                            : getFilteredCards()[index];
-                        return GestureDetector(
-                          onTap: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                //navigate to the page that contains the details
-                                builder: (_) => DetailPage(
-                                  appBarText: cardText,
-                                  callback: getWidget,
-                                  codeCallback: getCode,
+                const SizedBox(
+                  height: 20,
+                ),
+                Expanded(
+                  child: getFilteredCards().isEmpty
+                      ? const Center(
+                          child: Text(
+                            'No match found',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        )
+                      : ListView.builder(
+                          shrinkWrap: true,
+                    itemCount: searchQuery.isEmpty
+                        ? cardMap.keys.length
+                        : getFilteredCards().length,
+                          itemBuilder: (context, index) {
+                            final cardText = searchQuery.isEmpty
+                                ? cardMap.keys.toList()[index]
+                                : getFilteredCards()[index];
+                            return GestureDetector(
+                              onTap: () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    //navigate to the page that contains the details
+                                    builder: (_) => DetailPage(
+                                      appBarText: cardText,
+                                      callback: getWidget,
+                                      codeCallback: getCode,
+                                      saveFavoriteCards: saveFavoriteCards,
+                                      favorites:favorites,
+                                    ),
+                                  ),
+                                );
+                              },
+                              child: Card(
+                                color: const Color(0xFF63D0FF),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(15.0),
+                                ),
+                                elevation: 5,
+                                margin: const EdgeInsets.all(10),
+                                child: Padding(
+                                  padding:
+                                      const EdgeInsets.symmetric(horizontal: 10.0),
+                                  child: Column(
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Expanded(
+                                            child: Padding(
+                                              padding: const EdgeInsets.all(10.0),
+                                              child: Text(
+                                                cardText,
+                                                style: const TextStyle(
+                                                  fontSize: 20,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                          IconButton(
+                                            icon: Icon(
+                                              favorites.contains(cardText)
+                                                  ? Icons.favorite
+                                                  : Icons.favorite_border,
+                                            ),
+                                            onPressed: () {
+                                              setState(() {
+                                                favorites.contains(cardText)?favorites.remove(cardText):favorites.add(cardText);
+                                              });
+                                              saveFavoriteCards();
+                                            },
+                                          ),
+                                        ],
+                                      ),
+                                      Image.asset(
+                                        cardMap[cardText]!.imagePath,
+                                      )
+                                    ],
+                                  ),
                                 ),
                               ),
                             );
                           },
-                          child: Card(
-                            color: const Color(0xFF63D0FF),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(15.0),
-                            ),
-                            elevation: 5,
-                            margin: const EdgeInsets.all(10),
-                            child: Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 10.0),
-                              child: Column(
-                                children: [
-                                  Row(
-                                    children: [
-                                      Expanded(
-                                        child: Text(
-                                          cardText,
-                                          style: const TextStyle(
-                                            fontSize: 20,
-                                          ),
-                                        ),
-                                      ),
-                                      IconButton(
-                                        icon: Icon(
-                                          isFavorite[index]
-                                              ? Icons.favorite
-                                              : Icons.favorite_border,
-                                        ),
-                                        onPressed: () {
-                                          setState(() {
-                                            isFavorite[index] =
-                                                !isFavorite[index];
-                                          });
-                                          saveFavoriteCards();
-                                        },
-                                      ),
-                                    ],
-                                  ),
-                                  Image.asset(
-                                    cardMap[cardText]!.imagePath,
-                                  )
-                                ],
-                              ),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
+                        ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
